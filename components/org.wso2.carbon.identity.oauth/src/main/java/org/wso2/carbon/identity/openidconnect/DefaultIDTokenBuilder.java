@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationConst
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.KeyProviderService;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -425,7 +426,9 @@ public class DefaultIDTokenBuilder implements org.wso2.carbon.identity.openidcon
 
             int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
-            Key privateKey = getPrivateKey(tenantDomain, tenantId);
+            //Key privateKey = getPrivateKey(tenantDomain, tenantId);
+            KeyProviderService pkProvider = OAuth2ServiceComponentHolder.getKeyProvider();
+            Key privateKey = pkProvider.getPrivateKey(tenantDomain);
             JWSSigner signer = new RSASSASigner((RSAPrivateKey) privateKey);
             JWSHeader header = new JWSHeader((JWSAlgorithm) signatureAlgorithm);
             header.setKeyID(kid);
@@ -434,6 +437,8 @@ public class DefaultIDTokenBuilder implements org.wso2.carbon.identity.openidcon
             signedJWT.sign(signer);
             return signedJWT.serialize();
         } catch (JOSEException e) {
+            throw new IdentityOAuth2Exception("Error occurred while signing JWT", e);
+        } catch (Exception e) {
             throw new IdentityOAuth2Exception("Error occurred while signing JWT", e);
         }
     }
@@ -452,7 +457,9 @@ public class DefaultIDTokenBuilder implements org.wso2.carbon.identity.openidcon
 
             int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
-            Key privateKey = getPrivateKey(tenantDomain, tenantId);
+            KeyProviderService pkProvider = OAuth2ServiceComponentHolder.getKeyProvider();
+            //Key privateKey = getPrivateKey(tenantDomain, tenantId);
+            Key privateKey = pkProvider.getPrivateKey(tenantDomain);
             JWSSigner signer = new RSASSASigner((RSAPrivateKey) privateKey);
             JWSHeader header = new JWSHeader((JWSAlgorithm) signatureAlgorithm);
             header.setX509CertThumbprint(new Base64URL(getThumbPrint(tenantDomain, tenantId)));
@@ -461,6 +468,8 @@ public class DefaultIDTokenBuilder implements org.wso2.carbon.identity.openidcon
             signedJWT.sign(signer);
             return signedJWT.serialize();
         } catch (JOSEException e) {
+            throw new IdentityOAuth2Exception("Error occurred while signing JWT", e);
+        } catch (Exception e) {
             throw new IdentityOAuth2Exception("Error occurred while signing JWT", e);
         }
     }
